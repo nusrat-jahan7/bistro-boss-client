@@ -4,6 +4,7 @@ import { useContext } from "react";
 import { AuthContext } from "../context/AuthProvider";
 import toast from "react-hot-toast";
 import { FcGoogle } from "react-icons/fc";
+import client from "../api";
 
 const Login = () => {
   const navigate = useNavigate();
@@ -36,10 +37,17 @@ const Login = () => {
   const handleGoogleSignIn = () => {
     googleSignIn()
       .then((result) => {
-        toast.success("Login successfully!");
-        setTimeout(() => {
+        console.log(result.user);
+        const userInfo = {
+          email: result.user?.email,
+          name: result.user?.displayName,
+        };
+        client.post("/users", userInfo).then(({ data }) => {
+          console.log(data);
+          toast.success("Login successfully!");
           navigate(from, { replace: true });
-        }, 1500);
+          window.location.reload();
+        });
       })
       .catch((error) => {
         toast.error(error);

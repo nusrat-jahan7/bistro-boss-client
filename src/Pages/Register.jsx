@@ -5,6 +5,8 @@ import { AuthContext } from "../context/AuthProvider";
 import toast from "react-hot-toast";
 import { useFormik } from "formik";
 import { signUpSchema } from "../../src/schemas";
+import client from "../api";
+import { FcGoogle } from "react-icons/fc";
 
 const initialValues = {
   name: "",
@@ -17,7 +19,8 @@ const Register = () => {
   const navigate = useNavigate();
   const Location = useLocation();
   const from = Location.state?.from?.pathname || "/";
-  const { signUp, editProfile, loading, setLoading } = useContext(AuthContext);
+  const { signUp, editProfile, loading, setLoading, googleSignIn } =
+    useContext(AuthContext);
 
   // ***********************=== Formik ===*********************
 
@@ -32,9 +35,18 @@ const Register = () => {
           .then((result) => {
             console.log(result);
             editProfile({ displayName: name, photoURL: image }).then(() => {
-              toast.success("Account created successfully!");
-              navigate(from, { replace: true });
-              window.location.reload();
+              const userInfo = {
+                name: name,
+                email: email,
+              };
+              client.post("/users", userInfo).then(({ data }) => {
+                if (data.insertedId) {
+                  console.log("users inserted to the databse!");
+                  toast.success("Account created successfully!");
+                  navigate(from, { replace: true });
+                  window.location.reload();
+                }
+              });
             });
           })
           .catch((error) => {
@@ -43,6 +55,26 @@ const Register = () => {
           });
       },
     });
+
+  const handleGoogleSignIn = () => {
+    googleSignIn()
+      .then((result) => {
+        console.log(result.user);
+        const userInfo = {
+          email: result.user?.email,
+          name: result.user?.displayName,
+        };
+        client.post("/users", userInfo).then(({ data }) => {
+          console.log(data);
+          toast.success("Login successfully!");
+          navigate(from, { replace: true });
+          window.location.reload();
+        });
+      })
+      .catch((error) => {
+        toast.error(error);
+      });
+  };
 
   return (
     <div className="flex justify-between items-center max-w-6xl mx-auto">
@@ -116,6 +148,27 @@ const Register = () => {
               {loading ? "Loading" : "Sign up"}
             </button>
           </form>
+          <div className="flex items-center justify-between mt-4">
+            <span className="w-1/5 border-b lg:w-1/5"></span>
+
+            <a
+              href="#"
+              className="text-xs text-center text-gray-500 uppercase hover:underline"
+            >
+              or login with Social Media
+            </a>
+            <span className="w-1/5 border-b lg:w-1/5"></span>
+          </div>
+          <button
+            onClick={() => handleGoogleSignIn()}
+            type="submit"
+            className="btn btn-outline mt-4 w-full mx-auto"
+          >
+            <span className="text-lg">
+              <FcGoogle></FcGoogle>
+            </span>
+            Sign In With Google
+          </button>
           <p color="gray" className="mt-4 text-center font-normal">
             Already have an account?{" "}
             <Link
