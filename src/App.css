@@ -1,0 +1,8 @@
+.chief-img {
+  background-image: url("/images/home/chef-service.jpg");
+}
+.borderRadius {
+  border-radius: 0px 200px 200px 200px;
+  width: 200px;
+  height: 104px;
+}
